@@ -15,16 +15,16 @@ this repo is the test from Cargill Company, please read carefully all steps, don
 
 if you want to create a new image based in my docker file, please run the next command:
 
-    cd docker && docker image build -t cargill-nginx
+    cd docker && docker image build -t nginx-cargill
  
 then you need to tag the image:
 
-    docker tag javierdobles/cargill-nginx:latest
+    docker tag javierdobles/naginx-cargill:latest
 
  after the above command is completed now, you need to push your image to your hub:
  
 
-    docker push javierdobles/cargill-nginx
+    docker push javierdobles/naginx-cargill
 
 ## Packer
 with our new docker image ready, we need to generate now our AWS AMI to be used in our repo, for that, you need to **${REPO_DIR}/packer** and edit the template.json with your aws credentials in **template.json** here: 
@@ -36,14 +36,14 @@ with our new docker image ready, we need to generate now our AWS AMI to be used 
   
 
     packer build -var subnet_id=SUBNET_ID template.json
-where the subnet-id can the the default subnet from your aws account, this command is going to create the **AMI_ID** for our terraform setup, this AMI contains all the automation for docker, download the image and run it, also installed most of the packages used for our instances
+where the subnet-id can be the the default subnet from your aws account, this command is going to create the **AMI_ID** for our terraform setup, this AMI contains all the automation for docker, download the image and run it, also is installed most of the packages used for our instances
 
 ## Prepare the Environment
 
 this step to generate the ssh keys required for your terraform, please execute the command below:
 
     cd ${REPO_DIR}/terraform/ansible && ansible-playbook prepare-deployment.yml
-the command above is going to generate a folder under **${REPO_DIR}/terraform/** with the name of ssh_key, those keys are going to be use by terraform for the keypair setup for ec2 instances.
+the command above is going to generate a folder under **${REPO_DIR}/terraform/** with the name of **ssh_key**, those keys are going to be use by terraform for the keypair setup for ec2 instances.
 
 for the aws credentials, please fill the file **${REPO_DIR}/terraform/main.tf** in the fields below:
  
