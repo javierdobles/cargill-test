@@ -36,7 +36,7 @@ with our new docker image ready, we need to generate now our AWS AMI to be used 
   
 
     packer build -var subnet_id=SUBNET_ID template.json
-where the subnet-id can the the default subnet from your aws account, this command is going to create the **AMI_ID** for our terraform setup
+where the subnet-id can the the default subnet from your aws account, this command is going to create the **AMI_ID** for our terraform setup, this AMI contains all the automation for docker, download the image and run it, also installed most of the packages used for our instances
 
 ## Prepare the Environment
 
@@ -61,3 +61,4 @@ when all the steps above are now completed, now we can execute the last playbook
     ansible-playbook run_terraform.yml
 
 this playbook is going to run terraform plan as default, the only way to execute **terraform apply** is by adding a commit message: **#apply** as the last commit in the repo, this because we want to avoid apply from users without enough permissions in the repo, it created an script: **tf-wrapper** which is going to run all our terraform commands
+
