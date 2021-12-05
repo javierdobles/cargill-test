@@ -19,12 +19,12 @@ if you want to create a new image based in my docker file, please run the next c
  
 then you need to tag the image:
 
-    docker tag javierdobles/naginx-cargill:latest
+    docker tag javierdobles/nginx-cargill:latest
 
  after the above command is completed now, you need to push your image to your hub:
  
 
-    docker push javierdobles/naginx-cargill
+    docker push javierdobles/nginx-cargill
 
 ## Packer
 with our new docker image ready, we need to generate now our AWS AMI to be used in our repo, for that, you need to **${REPO_DIR}/packer** and edit the template.json with your aws credentials in **template.json** here: 
