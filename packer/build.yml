@@ -1,0 +1,92 @@
+---
+- name: Build Cargill nginx AMI
+  become: true
+  become_user: root
+  gather_facts: false
+  hosts: all
+  vars:
+    passphrase_length: 32
+
+
+  pre_tasks:
+    - name: Remove unattended-upgrades
+      raw: |
+        sudo apt-get purge -y unattended-upgrades
+
+    - name: Install Ansible dependencies
+      raw: |
+        sudo apt-get -y update
+
+    - name: Install Python pip
+      raw: |
+        sudo curl -s https://bootstrap.pypa.io/get-pip.py | python3
+
+  tasks:
+    - name: Disable periodic apt service
+      systemd:
+        name: apt-daily.service
+        masked: yes
+      become: yes
+
+    - name: Set UTC timezone
+      timezone:
+        name: Etc/UTC
+
+    - name: Install base packages
+      apt:
+        state: present
+        name: 
+          - apt-transport-https
+          - chrony
+          - jq
+          - docker.io
+          - linux-image-5.4.0-84-generic
+          - linux-headers-5.4.0-84-generic
+          - linux-tools-5.4.0-84-generic
+        update_cache: false
+    
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+
+    - name: Install pip packages
+      pip:
+        name: "{{ item }}"
+      loop:
+        - ansible
+        - awscli
+        - boto
+        - boto3
+        - botocore
+        - dnspython
+        - netaddr
+        - prettytable
+ 
+    - name: Install utilities
+      apt:
+        name: "jq"
+        update_cache: true
+      register: apt_install
+      until: not apt_install.failed
+      retries: 60
+      delay: 10
+
+    - name: Synchronize file hierarchy
+      synchronize:
+        src: files/
+        dest: /
+        archive: no
+        delete: no
+        recursive: yes
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable services
+      systemd:
+        name: cargill-autoconf
+        enabled: yes
+        masked: no
+      

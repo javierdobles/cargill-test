@@ -1,0 +1,11 @@
+[Unit]
+Description=Cargill Autoconf
+After=network.target
+
+[Service]
+ExecStart=/bin/bash /usr/local/sbin/cargill-autoconf
+RemainAfterExit=yes
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target

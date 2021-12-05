@@ -1,0 +1,47 @@
+{
+    "builders": [
+      {
+        "ami_name": "cargill-packer-nginx-{{ timestamp }}",
+        "type": "amazon-ebs",
+        "instance_type": "t2.micro",
+        "access_key": "access-here",
+        "secret_key": "secret-here",
+        "region": "us-east-1",
+        "source_ami_filter": {
+          "filters": {
+            "virtualization-type": "hvm",
+            "name": "ubuntu/images/hvm-ssd/*ubuntu-focal-20.04-amd64-server*",
+            "root-device-type": "ebs"
+          },
+          "owners": [
+            "099720109477"
+          ],
+          "most_recent": true
+        },
+        "launch_block_device_mappings": [{
+          "device_name": "/dev/sda1",
+          "encrypted": false
+        }],
+        "spot_price": "0",
+        "ssh_username": "ubuntu",
+        "subnet_id": "{{user `subnet_id`}}",
+        "tags": {
+          "Name": "cargill-packer-nginx-{{ timestamp }}",
+          "Infrastructure": "cargill"
+        }
+      }
+    ],
+    "provisioners": [
+      {
+        "type": "ansible",
+        "playbook_file": "./build.yml"
+      },
+      {
+        "type": "shell",
+        "inline": [
+          "sudo rm -fr /var/lib/cloud/instance/sem/*"
+        ]
+      }
+    ]
+  }
+  

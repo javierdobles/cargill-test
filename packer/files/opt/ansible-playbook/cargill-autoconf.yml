@@ -1,0 +1,15 @@
+---
+- name: Configure Cargill nginx AMI
+  gather_facts: no
+  hosts: localhost
+  vars:
+    docker_image: javierdobles/nginx-cargill
+    tag: latest
+  tasks:
+    - name: Download docker image
+      command: |
+        docker pull {{ docker_image }}:{{ tag }}
+
+    - name: Start container
+      command: |
+         docker run -d --publish 80:80 {{ docker_image }}

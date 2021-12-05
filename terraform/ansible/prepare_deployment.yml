@@ -1,0 +1,68 @@
+---
+- name: Configure environment
+  gather_facts: no
+  hosts: localhost
+  vars:
+    passphrase_length: 32
+
+  tasks:
+    - set_fact:
+        ssh_key_comment: "cargill@key"
+    
+    - name: Create temporary directory
+      tempfile:
+        state: directory
+      register: tmpdir
+
+    - name: Create directory for ssh key storage
+      file:
+        path: "../ssh_key"
+        state: directory
+
+    - name: Create directory for key synchronization
+      file:
+        path: "{{ tmpdir.path }}/ssh_key"
+        state: directory
+
+    - block:
+        - name: Synchronize bootstrap ssh_key to temporary
+          copy:
+            src: "/mnt/c/repo/terraform/ssh_key/"
+            dest: "{{ tmpdir.path }}/ssh_key/"
+            remote_src: no
+
+        - name: Check for cargill ssh key passphrase
+          stat:
+            path: "{{ tmpdir.path }}/ssh_key/ssh_key_passphrase"
+          register: ssh_key_passphrase
+
+        - name: Generate ssh key passphrase if doe not exists
+          shell: |
+            openssl rand -base64 {{ passphrase_length }} > {{ tmpdir.path }}/ssh_key/ssh_key_passphrase
+          when: not ssh_key_passphrase.stat.exists
+
+        - name: Read back ssh private key passphrase
+          set_fact:
+            ssh_key_passphrase: "{{ lookup('file', '{{ tmpdir.path }}/ssh_key/ssh_key_passphrase') }}"
+
+        - name: Check for ssh private key
+          stat:
+            path: "{{ tmpdir.path }}/ssh_key/keypair"
+          register: ssh_key_file
+
+        - name: Generate ssh key pair
+          command: |
+            ssh-keygen -C '{{ ssh_key_comment }}' -N '{{ ssh_key_passphrase }}' -f {{ tmpdir.path }}/ssh_key/keypair
+          when: not ssh_key_file.stat.exists
+
+        - name: Put secrets into position in the workspace
+          synchronize:
+            src: "{{ tmpdir.path }}/ssh_key/"
+            dest: "/mnt/c/repo/terraform/ssh_key/"
+            delete: yes
+            recursive: yes
+      always:
+        - name: Delete temporary directory
+          file:
+            path: "{{ tmpdir.path }}"
+            state: absent

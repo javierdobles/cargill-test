@@ -1,0 +1,41 @@
+---
+- name: Run Terraform
+  gather_facts: no
+  hosts: localhost
+  vars:
+    action_map:
+      '#apply': 'apply -auto-approve'
+      '#destroy': 'destroy -auto-approve'
+      '#plan': 'plan'
+    default_action: '#plan'
+
+  tasks:
+    - name: Read last commit headline
+      command: git log -1 --oneline --format=%B
+      register: commit
+
+    - name: Extract final word from headline
+      set_fact:
+        action: "{{ commit.stdout | regex_search('#(.*)$') | default(default_action, true) }}"
+
+    - name: Verify command
+      fail:
+        msg: Unsupported action '{{ action }}'
+      when: action not in action_map
+
+    - name: Generate wrapper script
+      copy:
+        content: |
+          #!/bin/sh
+          terraform init
+          terraform {{ action_map[action] }}
+        dest: ../tf-wrapper
+        mode: 0755
+
+    - name: Announce action to log
+      debug:
+        msg: Running terrafom {{ action_map[action] }}
+
+    - name: running terraform
+      command: |
+         cd ../ && ./tf-wrapper
