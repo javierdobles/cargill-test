@@ -27,7 +27,7 @@
     - block:
         - name: Synchronize bootstrap ssh_key to temporary
           copy:
-            src: "/mnt/c/repo/terraform/ssh_key/"
+            src: "../ssh_key/"
             dest: "{{ tmpdir.path }}/ssh_key/"
             remote_src: no
 
@@ -58,7 +58,7 @@
         - name: Put secrets into position in the workspace
           synchronize:
             src: "{{ tmpdir.path }}/ssh_key/"
-            dest: "/mnt/c/repo/terraform/ssh_key/"
+            dest: "../ssh_key/"
             delete: yes
             recursive: yes
       always:
